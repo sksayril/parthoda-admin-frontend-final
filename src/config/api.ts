@@ -18,6 +18,7 @@ export const API_CONFIG = {
       DETAIL: '/admin/users',
       STATUS: '/admin/users',
       WALLET: '/admin/users',
+      RECHARGE_WALLET: '/admin/recharge-user-wallet',
       MLM: {
         USERS_BY_LEVEL: '/users/mlm/users-by-level',
         STATISTICS: '/users/mlm/statistics',
@@ -26,6 +27,7 @@ export const API_CONFIG = {
     DASHBOARD: {
       STATS: '/admin/dashboard/stats',
       REVENUE: '/admin/dashboard/revenue',
+      COMPREHENSIVE: '/admin/dashboard',
     },
   },
 } as const;

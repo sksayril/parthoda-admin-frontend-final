@@ -11,7 +11,9 @@ import {
   WalletUpdateResponse,
   UserStatusUpdateResponse,
   UsersByLevelResponse,
-  MLMStatisticsResponse
+  MLMStatisticsResponse,
+  RechargeWalletData,
+  RechargeWalletResponse
 } from '../types';
 
 export interface UserFilters {
@@ -201,6 +203,25 @@ class UserService {
       throw new Error(response.message || 'Failed to fetch MLM statistics');
     } catch (error) {
       console.error('Get MLM statistics error:', error);
+      throw error;
+    }
+  }
+
+  // Recharge user wallet
+  async rechargeUserWallet(rechargeData: RechargeWalletData): Promise<RechargeWalletResponse> {
+    try {
+      const response = await httpClient.post<RechargeWalletResponse>(
+        API_CONFIG.ENDPOINTS.USERS.RECHARGE_WALLET,
+        rechargeData
+      );
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      throw new Error(response.message || 'Failed to recharge user wallet');
+    } catch (error) {
+      console.error('Recharge user wallet error:', error);
       throw error;
     }
   }

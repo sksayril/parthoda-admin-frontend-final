@@ -173,6 +173,30 @@ export interface WalletUpdateResponse {
   wallets: UserWallets;
 }
 
+export interface RechargeWalletData {
+  userId: string;
+  amount: number;
+  walletType: 'mainWallet' | 'benefitWallet' | 'withdrawalWallet';
+  description?: string;
+}
+
+export interface RechargeWalletResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    walletType: string;
+    amountRecharged: number;
+    balanceBefore: number;
+    balanceAfter: number;
+  };
+  admin: {
+    id: string;
+    name: string;
+    mainWalletBalance: number;
+  };
+}
+
 export interface UserStatusUpdateResponse {
   user: User;
 }
@@ -208,6 +232,129 @@ export interface RevenueData {
   revenue: number;
   orders: number;
   users: number;
+}
+
+// Comprehensive Dashboard Types
+export interface AdminWalletBalance {
+  mainWallet: WalletInfo;
+  benefitWallet: WalletInfo;
+  withdrawalWallet: WalletInfo;
+  total: WalletInfo;
+}
+
+export interface AdminInfo {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  walletBalance: AdminWalletBalance;
+}
+
+export interface UserStatistics {
+  total: number;
+  active: number;
+  inactive: number;
+  verified: number;
+  unverified: number;
+  growthRate: number;
+}
+
+export interface FinancialStatistics {
+  totalEarnings: number;
+  totalWithdrawals: number;
+  netEarnings: number;
+}
+
+export interface WalletDistribution {
+  totalMainWallet: number;
+  totalBenefitWallet: number;
+  totalWithdrawalWallet: number;
+  averageMainWallet: number;
+  averageBenefitWallet: number;
+  averageWithdrawalWallet: number;
+}
+
+export interface DashboardStatistics {
+  users: UserStatistics;
+  financial: FinancialStatistics;
+  walletDistribution: WalletDistribution;
+}
+
+export interface ChartDataPoint {
+  month: string;
+  count: number;
+}
+
+export interface WalletChartData {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface DashboardCharts {
+  monthlyUserRegistrations: ChartDataPoint[];
+  walletDistribution: WalletChartData[];
+}
+
+export interface RecentUser {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  verified: string;
+  joinDate: string;
+  wallets: {
+    mainWallet: number;
+    benefitWallet: number;
+    withdrawalWallet: number;
+  };
+}
+
+export interface TopEarner {
+  id: string;
+  name: string;
+  email: string;
+  totalEarnings: number;
+  formattedEarnings: string;
+  wallets: {
+    mainWallet: number;
+    benefitWallet: number;
+    withdrawalWallet: number;
+  };
+}
+
+export interface RecentTransaction {
+  id: string;
+  user: {
+    name: string;
+    email: string;
+  };
+  type: 'credit' | 'debit';
+  walletType: string;
+  amount: number;
+  formattedAmount: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface RecentActivity {
+  users: RecentUser[];
+  topEarners: TopEarner[];
+  recentTransactions: RecentTransaction[];
+}
+
+export interface ComprehensiveDashboardData {
+  admin: AdminInfo;
+  statistics: DashboardStatistics;
+  charts: DashboardCharts;
+  recentActivity: RecentActivity;
+}
+
+export interface ComprehensiveDashboardResponse {
+  success: boolean;
+  message: string;
+  data: ComprehensiveDashboardData;
 }
 
 // Toast Types

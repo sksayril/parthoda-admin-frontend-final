@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from './Sidebar';
-import DashboardContent from './DashboardContent';
+import ComprehensiveDashboard from './ComprehensiveDashboard';
 import Users from './Users';
 import Revenue from './Revenue';
 
@@ -13,13 +13,13 @@ const Dashboard: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardContent />;
+        return <ComprehensiveDashboard />;
       case 'users':
         return <Users />;
       case 'revenue':
         return <Revenue />;
       default:
-        return <DashboardContent />;
+        return <ComprehensiveDashboard />;
     }
   };
 

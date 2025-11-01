@@ -12,7 +12,6 @@ import {
   TrendingUp,
   UserCheck,
   UserX,
-  Wallet,
   RefreshCw,
   Users as UsersIcon,
   Download,
@@ -23,7 +22,8 @@ import {
   Calendar,
   BarChart3,
   Network,
-  Layers
+  Layers,
+  Wallet
 } from 'lucide-react';
 import { userService, UserFilters } from '../services/users';
 import { User } from '../types';
@@ -32,11 +32,13 @@ import { formatDate } from '../utils';
 import UserDetails from './UserDetails';
 import MLMStatisticsModal from './MLMStatisticsModal';
 import UsersByLevelModal from './UsersByLevelModal';
+import RechargeWalletModal from './RechargeWalletModal';
 
 const Users: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,10 +54,15 @@ const Users: React.FC = () => {
   const [showMLMStatisticsModal, setShowMLMStatisticsModal] = useState(false);
   const [showUsersByLevelModal, setShowUsersByLevelModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(1);
+  
+  // Recharge Wallet Modal States
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [selectedUserForRecharge, setSelectedUserForRecharge] = useState<User | null>(null);
 
   // Load users
   const loadUsers = async () => {
     setLoading(true);
+    setError(null);
     try {
       const filters: UserFilters = {
         page: currentPage,
@@ -65,11 +72,18 @@ const Users: React.FC = () => {
       };
 
       const response = await userService.getUsers(filters);
-      setUsers(response.users);
-      setTotalPages(response.pagination.pages);
-      setTotalUsers(response.pagination.total);
+      
+      // Ensure we have valid data
+      const usersData = response.users || [];
+      const paginationData = response.pagination || { pages: 1, total: 0 };
+      
+      setUsers(usersData);
+      setTotalPages(paginationData.pages);
+      setTotalUsers(paginationData.total);
     } catch (error: any) {
-      showError('Error Loading Users', error.message || 'Failed to load users');
+      const errorMessage = error.message || 'Failed to load users';
+      setError(errorMessage);
+      showError('Error Loading Users', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -161,6 +175,10 @@ const Users: React.FC = () => {
     } catch (error: any) {
       showError('Bulk Action Failed', error.message || 'Failed to perform bulk action');
     }
+  };
+
+  const handleRechargeSuccess = () => {
+    loadUsers(); // Refresh the users list to show updated wallet balances
   };
 
   const exportUsersData = () => {
@@ -269,6 +287,7 @@ const Users: React.FC = () => {
       </div>
     );
   }
+
 
   return (
     <div className="p-6 space-y-6">
@@ -417,12 +436,12 @@ const Users: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <input
                     type="checkbox"
                     onChange={(e) => {
@@ -432,265 +451,301 @@ const Users: React.FC = () => {
                         setSelectedUsers([]);
                       }
                     }}
-                    className="h-4 w-4 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
+                    className="h-3 w-3 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
                   />
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Password
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role & Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Wallets
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Earnings
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Referrals
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Join Date
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user._id)}
-                      onChange={() => toggleUserSelection(user._id)}
-                      className="h-4 w-4 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 bg-sky-100 rounded-full flex items-center justify-center">
-                        <UsersIcon className="h-5 w-5 text-sky-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.firstName || 'N/A'} {user.lastName || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {user.referralCode || 'N/A'}
-                        </div>
-                      </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <RefreshCw className="h-8 w-8 animate-spin text-sky-500" />
+                      <p className="text-gray-600">Loading users...</p>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          <span className="truncate max-w-[200px]">{user.email || 'N/A'}</span>
-                        </div>
-                        <button
-                          onClick={() => copyToClipboard(user.email || '', 'Email', user._id)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
-                          disabled={!user.email}
-                        >
-                          {copiedItems[`${user._id}-Email`] ? (
-                            <Check className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-400" />
-                          )}
-                        </button>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={9} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <AlertTriangle className="h-12 w-12 text-red-400" />
+                      <div className="text-red-600">
+                        <p className="text-lg font-medium">Error loading users</p>
+                        <p className="text-sm">{error}</p>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                          <span>{user.phone || 'N/A'}</span>
-                        </div>
-                        <button
-                          onClick={() => copyToClipboard(user.phone || '', 'Phone', user._id)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
-                          disabled={!user.phone}
-                        >
-                          {copiedItems[`${user._id}-Phone`] ? (
-                            <Check className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">
-                        {user.originalPassword ? (
-                          <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs">
-                            {user.originalPassword}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">N/A</span>
-                        )}
-                      </div>
-                      {user.originalPassword && (
-                        <button
-                          onClick={() => copyToClipboard(user.originalPassword || '', 'Password', user._id)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
-                          disabled={!user.originalPassword}
-                        >
-                          {copiedItems[`${user._id}-Password`] ? (
-                            <Check className="h-3 w-3 text-green-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-400" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Shield className="h-3 w-3 text-gray-400" />
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.role || 'user')}`}>
-                          {user.role || 'user'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(user.status?.active ?? user.isActive)}`}>
-                          {user.status?.active ?? user.isActive ? (
-                            <>
-                              <UserCheck className="h-3 w-3 mr-1" />
-                              {user.status?.statusText || 'Active'}
-                            </>
-                          ) : (
-                            <>
-                              <UserX className="h-3 w-3 mr-1" />
-                              {user.status?.statusText || 'Inactive'}
-                            </>
-                          )}
-                        </span>
-                        {user.status?.verified ?? user.isVerified ? (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            <Check className="h-3 w-3 mr-1" />
-                            {user.status?.verificationText || 'Verified'}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            {user.status?.verificationText || 'Unverified'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <Wallet className="h-4 w-4 mr-2 text-blue-500" />
-                          <span>Main</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.wallets?.mainWallet?.formatted || '$0.00'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <DollarSign className="h-4 w-4 mr-2 text-green-500" />
-                          <span>Benefit</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.wallets?.benefitWallet?.formatted || '$0.00'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <TrendingUp className="h-4 w-4 mr-2 text-purple-500" />
-                          <span>Withdrawal</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.wallets?.withdrawalWallet?.formatted || '$0.00'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <DollarSign className="h-4 w-4 mr-2 text-green-500" />
-                          <span>Total</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.earnings?.formatted?.total || '$0.00'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
-                          <span>Withdrawn</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.earnings?.formatted?.withdrawn || '$0.00'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-gray-600">
-                          <UsersIcon className="h-4 w-4 mr-2 text-purple-500" />
-                          <span>Referrals</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{user.referrals?.total || 0}</span>
-                      </div>
-                      {user.referredBy && (
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]">
-                          By: {user.referredBy.firstName} {user.referredBy.lastName}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{user.formattedJoinDate || formatDate(user.joinDate || user.createdAt || '')}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-1">
-                      <button 
-                        onClick={() => handleStatusToggle(user._id, user.isActive)}
-                        className={`p-2 rounded-lg transition-all duration-200 ${
-                          user.isActive 
-                            ? 'text-red-600 hover:text-red-800 hover:bg-red-50' 
-                            : 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                        }`}
-                        title={user.isActive ? 'Deactivate User' : 'Activate User'}
+                      <button
+                        onClick={loadUsers}
+                        className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors duration-200"
                       >
-                        {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                      </button>
-                      <button 
-                        onClick={() => setSelectedUserId(user._id)}
-                        className="text-sky-600 hover:text-sky-800 p-2 hover:bg-sky-50 rounded-lg transition-all duration-200"
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button 
-                        className="text-gray-600 hover:text-gray-800 p-2 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                        title="Edit User"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button 
-                        className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-200"
-                        title="Delete User"
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        Try Again
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : users.length > 0 ? (
+                users.map((user) => (
+                      <tr key={user._id} className="hover:bg-gray-50 transition-colors duration-200">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user._id)}
+                        onChange={() => toggleUserSelection(user._id)}
+                        className="h-3 w-3 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
+                      />
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 flex-shrink-0 bg-sky-100 rounded-full flex items-center justify-center">
+                          <UsersIcon className="h-4 w-4 text-sky-600" />
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-xs font-medium text-gray-900">
+                            {user.firstName || 'N/A'} {user.lastName || 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {user.referralCode || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-gray-600">
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                            <span className="truncate max-w-[150px] text-xs">{user.email || 'N/A'}</span>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(user.email || '', 'Email', user._id)}
+                            className="p-0.5 hover:bg-gray-100 rounded transition-colors duration-200"
+                            disabled={!user.email}
+                          >
+                            {copiedItems[`${user._id}-Email`] ? (
+                              <Check className="h-2.5 w-2.5 text-green-600" />
+                            ) : (
+                              <Copy className="h-2.5 w-2.5 text-gray-400" />
+                            )}
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-600">
+                          <div className="flex items-center">
+                            <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                            <span className="text-xs">{user.phone || 'N/A'}</span>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(user.phone || '', 'Phone', user._id)}
+                            className="p-0.5 hover:bg-gray-100 rounded transition-colors duration-200"
+                            disabled={!user.phone}
+                          >
+                            {copiedItems[`${user._id}-Phone`] ? (
+                              <Check className="h-2.5 w-2.5 text-green-600" />
+                            ) : (
+                              <Copy className="h-2.5 w-2.5 text-gray-400" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-600">
+                          {user.originalPassword ? (
+                            <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                              {user.originalPassword}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">N/A</span>
+                          )}
+                        </div>
+                        {user.originalPassword && (
+                          <button
+                            onClick={() => copyToClipboard(user.originalPassword || '', 'Password', user._id)}
+                            className="p-0.5 hover:bg-gray-100 rounded transition-colors duration-200"
+                            disabled={!user.originalPassword}
+                          >
+                            {copiedItems[`${user._id}-Password`] ? (
+                              <Check className="h-2.5 w-2.5 text-green-600" />
+                            ) : (
+                              <Copy className="h-2.5 w-2.5 text-gray-400" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <Shield className="h-3 w-3 text-gray-400" />
+                          <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded-full ${getRoleBadge(user.role || 'user')}`}>
+                            {user.role || 'user'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-full ${getStatusBadge(user.status?.active ?? user.isActive)}`}>
+                            {user.status?.active ?? user.isActive ? (
+                              <>
+                                <UserCheck className="h-2.5 w-2.5 mr-1" />
+                                {user.status?.statusText || 'Active'}
+                              </>
+                            ) : (
+                              <>
+                                <UserX className="h-2.5 w-2.5 mr-1" />
+                                {user.status?.statusText || 'Inactive'}
+                              </>
+                            )}
+                          </span>
+                          {user.status?.verified ?? user.isVerified ? (
+                            <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                              <Check className="h-2.5 w-2.5 mr-1" />
+                              {user.status?.verificationText || 'Verified'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                              <AlertTriangle className="h-2.5 w-2.5 mr-1" />
+                              {user.status?.verificationText || 'Unverified'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center text-gray-600">
+                            <DollarSign className="h-3 w-3 mr-1 text-green-500" />
+                            <span>Total</span>
+                          </div>
+                          <span className="font-medium text-gray-900 text-xs">{user.earnings?.formatted?.total || '$0.00'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center text-gray-600">
+                            <TrendingUp className="h-3 w-3 mr-1 text-blue-500" />
+                            <span>Withdrawn</span>
+                          </div>
+                          <span className="font-medium text-gray-900 text-xs">{user.earnings?.formatted?.withdrawn || '$0.00'}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center text-gray-600">
+                            <UsersIcon className="h-3 w-3 mr-1 text-purple-500" />
+                            <span>Referrals</span>
+                          </div>
+                          <span className="font-medium text-gray-900 text-xs">{user.referrals?.total || 0}</span>
+                        </div>
+                        {user.referredBy && (
+                          <div className="text-xs text-gray-500 truncate max-w-[120px]">
+                            By: {user.referredBy.firstName} {user.referredBy.lastName}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Calendar className="h-3 w-3 mr-1 text-gray-400" />
+                        <span className="text-xs">{user.formattedJoinDate || formatDate(user.joinDate || user.createdAt || '')}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right text-xs font-medium">
+                      <div className="flex items-center justify-end space-x-0.5">
+                        <button 
+                          onClick={() => {
+                            setSelectedUserForRecharge(user);
+                            setShowRechargeModal(true);
+                          }}
+                          className="text-green-600 hover:text-green-800 p-1 hover:bg-green-50 rounded transition-all duration-200"
+                          title="Recharge Wallet"
+                        >
+                          <Wallet className="h-3 w-3" />
+                        </button>
+                        <button 
+                          onClick={() => handleStatusToggle(user._id, user.isActive)}
+                          className={`p-1 rounded transition-all duration-200 ${
+                            user.isActive 
+                              ? 'text-red-600 hover:text-red-800 hover:bg-red-50' 
+                              : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                          }`}
+                          title={user.isActive ? 'Deactivate User' : 'Activate User'}
+                        >
+                          {user.isActive ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                        </button>
+                        <button 
+                          onClick={() => setSelectedUserId(user._id)}
+                          className="text-sky-600 hover:text-sky-800 p-1 hover:bg-sky-50 rounded transition-all duration-200"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </button>
+                        <button 
+                          className="text-gray-600 hover:text-gray-800 p-1 hover:bg-gray-50 rounded transition-all duration-200"
+                          title="Edit User"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </button>
+                        <button 
+                          className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-all duration-200"
+                          title="Delete User"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </td>
+                </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <UsersIcon className="h-12 w-12 text-gray-400" />
+                      <div className="text-gray-500">
+                        <p className="text-lg font-medium">No users found</p>
+                        <p className="text-sm">
+                          {searchTerm || selectedRole !== 'all' 
+                            ? 'Try adjusting your search or filter criteria' 
+                            : 'No users have been created yet'
+                          }
+                        </p>
+                      </div>
+                      {!searchTerm && selectedRole === 'all' && (
+                        <button
+                          onClick={() => setShowCreateModal(true)}
+                          className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors duration-200"
+                        >
+                          Create First User
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -827,6 +882,16 @@ const Users: React.FC = () => {
         onClose={() => setShowUsersByLevelModal(false)}
         selectedLevel={selectedLevel}
         onLevelChange={setSelectedLevel}
+      />
+      
+      <RechargeWalletModal 
+        isOpen={showRechargeModal}
+        onClose={() => {
+          setShowRechargeModal(false);
+          setSelectedUserForRecharge(null);
+        }}
+        user={selectedUserForRecharge}
+        onRechargeSuccess={handleRechargeSuccess}
       />
     </div>
   );
