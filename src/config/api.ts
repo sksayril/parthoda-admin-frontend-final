@@ -22,6 +22,7 @@ export const API_CONFIG = {
       MLM: {
         USERS_BY_LEVEL: '/users/mlm/users-by-level',
         STATISTICS: '/users/mlm/statistics',
+        CHAIN: '/users/mlm/chain',
       },
     },
     DASHBOARD: {

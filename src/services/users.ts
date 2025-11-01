@@ -13,7 +13,8 @@ import {
   UsersByLevelResponse,
   MLMStatisticsResponse,
   RechargeWalletData,
-  RechargeWalletResponse
+  RechargeWalletResponse,
+  MLMChainResponse
 } from '../types';
 
 export interface UserFilters {
@@ -222,6 +223,29 @@ class UserService {
       throw new Error(response.message || 'Failed to recharge user wallet');
     } catch (error) {
       console.error('Recharge user wallet error:', error);
+      throw error;
+    }
+  }
+
+  // MLM: Get chain by referral code
+  async getMLMChain(referralCode: string, maxLevel: number = 20): Promise<MLMChainResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('referralCode', referralCode);
+      queryParams.append('maxLevel', maxLevel.toString());
+
+      const endpoint = `${API_CONFIG.ENDPOINTS.USERS.MLM.CHAIN}?${queryParams.toString()}`;
+      console.log('MLM API Call - Chain:', endpoint);
+
+      const response = await httpClient.get<MLMChainResponse>(endpoint);
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+
+      throw new Error(response.message || 'Failed to fetch MLM chain');
+    } catch (error) {
+      console.error('Get MLM chain error:', error);
       throw error;
     }
   }

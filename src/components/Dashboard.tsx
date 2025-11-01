@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import ComprehensiveDashboard from './ComprehensiveDashboard';
 import Users from './Users';
 import Revenue from './Revenue';
+import MLMNetwork from './MLMNetwork';
 
 const Dashboard: React.FC = () => {
   const { logout } = useAuth();
@@ -18,6 +19,8 @@ const Dashboard: React.FC = () => {
         return <Users />;
       case 'revenue':
         return <Revenue />;
+      case 'mlm-network':
+        return <MLMNetwork />;
       default:
         return <ComprehensiveDashboard />;
     }

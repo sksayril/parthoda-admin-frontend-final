@@ -1,6 +1,6 @@
 // Environment Configuration
 export const ENV_CONFIG = {
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3100/api',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://7cvccltb-3100.inc1.devtunnels.ms/api',
   // API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.utpfund.live/api',
   NODE_ENV: import.meta.env.VITE_NODE_ENV || 'development',
   IS_DEVELOPMENT: import.meta.env.DEV,

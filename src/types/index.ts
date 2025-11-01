@@ -550,6 +550,118 @@ export interface MLMStatisticsResponse {
   data: MLMStatistics;
 }
 
+// MLM Chain Types
+export interface MLMChainUser {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  referralCode: string;
+  referralLevel?: number;
+  level?: number;
+  position?: string;
+  totalReferrals: number;
+  directReferralsCount?: number;
+  totalCommissionsEarned: number;
+  wallets?: {
+    mainWallet: number;
+    benefitWallet: number;
+    withdrawalWallet: number;
+  };
+  joinedAt?: string;
+  referredBy?: string;
+  children?: MLMChainUser[];
+  childrenCount?: number;
+}
+
+export interface MLMChainUpline {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  referralCode: string;
+  level: number;
+  position: string;
+  totalReferrals: number;
+  totalCommissionsEarned: number;
+}
+
+export interface MLMChainDownlineUser {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  referralCode: string;
+  referralLevel?: number;
+  level: number;
+  totalReferrals: number;
+  totalCommissionsEarned: number;
+  joinedAt?: string;
+  children?: MLMChainDownlineUser[];
+  childrenCount?: number;
+  directReferralsCount?: number;
+  wallets?: {
+    mainWallet: number;
+    benefitWallet: number;
+    withdrawalWallet: number;
+  };
+}
+
+export interface MLMChainFlatUser {
+  level: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  referralCode: string;
+  totalReferrals: number;
+  totalCommissionsEarned: number;
+  joinedAt: string;
+}
+
+export interface MLMChainUsersByLevel {
+  [key: string]: {
+    level: number;
+    count: number;
+    totalCommissions: number;
+    totalReferrals: number;
+  };
+}
+
+export interface MLMChainDownline {
+  tree: MLMChainDownlineUser[];
+  flatList: MLMChainFlatUser[];
+  statistics: {
+    totalDownlineUsers: number;
+    directReferrals: number;
+    totalDownlineCommissions: number;
+    totalDownlineReferrals: number;
+    usersByLevel: MLMChainUsersByLevel;
+  };
+}
+
+export interface MLMChainInfo {
+  maxLevel: number;
+  totalLevels: number;
+  hasUpline: boolean;
+  hasDownline: boolean;
+}
+
+export interface MLMChainResponse {
+  currentUser: MLMChainUser;
+  upline: MLMChainUpline[];
+  downline: MLMChainDownline;
+  chainInfo: MLMChainInfo;
+}
+
 // Settings Types
 export interface AppSettings {
   theme: string;
